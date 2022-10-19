@@ -1,5 +1,7 @@
 package com.darkender.plugins.survivalinvisiframes;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
@@ -158,7 +160,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         ItemMeta meta = item.getItemMeta();
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         meta.addEnchant(Enchantment.DURABILITY, 1 ,true);
-        meta.setDisplayName(ChatColor.WHITE + "Invisible Item Frame");
+        meta.displayName(Component.text("Invisible Item Frame").color(NamedTextColor.WHITE));
         meta.getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
         item.setItemMeta(meta);
         return item;
@@ -202,7 +204,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             {
                 ItemStack invisibleGlowingItem = generateInvisibleItemFrame();
                 ItemMeta meta = invisibleGlowingItem.getItemMeta();
-                meta.setDisplayName(ChatColor.WHITE + "Glow Invisible Item Frame");
+                meta.displayName(Component.text("Glow Invisible Item Frame").color(NamedTextColor.WHITE));
                 invisibleGlowingItem.setItemMeta(meta);
                 invisibleGlowingItem.setType(glowFrame);
                 
@@ -301,7 +303,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 if(glowFrame != null && item.getItemStack().getType() == glowFrame)
                 {
                     ItemMeta meta = frame.getItemMeta();
-                    meta.setDisplayName(ChatColor.WHITE + "Glow Invisible Item Frame");
+                    meta.displayName(Component.text("Glow Invisible Item Frame").color(NamedTextColor.WHITE));
                     frame.setItemMeta(meta);
                     frame.setType(glowFrame);
                 }
