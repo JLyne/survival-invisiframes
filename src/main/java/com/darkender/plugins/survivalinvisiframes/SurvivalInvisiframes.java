@@ -35,11 +35,6 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     private boolean framesGlow;
     private boolean firstLoad = true;
     
-    // Stays null if not in 1.17
-    private Material glowInkSac = null;
-    private Material glowFrame = null;
-    private EntityType glowFrameEntity = null;
-    
     @Override
     public void onEnable()
     {
@@ -47,15 +42,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         invisibleKey = new NamespacedKey(this, "invisible");
         
         droppedFrames = new HashSet<>();
-    
-        try
-        {
-            glowInkSac = Material.valueOf("GLOW_INK_SAC");
-            glowFrame = Material.valueOf("GLOW_ITEM_FRAME");
-            glowFrameEntity = EntityType.valueOf("GLOW_ITEM_FRAME");
-        }
-        catch(IllegalArgumentException ignored) {}
-        
+
         reload();
         
         getServer().getPluginManager().registerEvents(this, this);
@@ -84,14 +71,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             }
         }
     }
-    
-    public void setRecipeItem(ItemStack item)
-    {
-        getConfig().set("recipe", item);
-        saveConfig();
-        reload();
-    }
-    
+
     public void reload()
     {
         saveDefaultConfig();
@@ -152,8 +132,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     
     private boolean isFrameEntity(Entity entity)
     {
-        return (entity != null && (entity.getType() == EntityType.ITEM_FRAME ||
-                (glowFrameEntity != null && entity.getType() == glowFrameEntity)));
+        return entity instanceof ItemFrame;
     }
     
     public static ItemStack generateInvisibleItemFrame()
@@ -175,15 +154,14 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         {
             event.getInventory().setResult(null);
         }
-        else if(glowInkSac != null && glowFrame != null)
-        {
+        else {
             boolean foundFrame = false;
             boolean foundInkSac = false;
             for(ItemStack i : event.getInventory().getMatrix())
             {
                 if(i == null || i.getType() == Material.AIR) continue;
                 
-                if(i.getType() == glowInkSac)
+                if(i.getType() == Material.GLOW_INK_SAC)
                 {
                     if(foundInkSac) return;
                     foundInkSac = true;
@@ -191,7 +169,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 }
                 
                 if(i.getItemMeta().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE) &&
-                        i.getType() != glowFrame)
+                        i.getType() != Material.GLOW_ITEM_FRAME)
                 {
                     if(foundFrame) return;
                     foundFrame = true;
@@ -208,7 +186,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 ItemMeta meta = invisibleGlowingItem.getItemMeta();
                 meta.displayName(Component.text("Glow Invisible Item Frame").color(NamedTextColor.WHITE));
                 invisibleGlowingItem.setItemMeta(meta);
-                invisibleGlowingItem.setType(glowFrame);
+                invisibleGlowingItem.setType(Material.GLOW_ITEM_FRAME);
                 
                 event.getInventory().setResult(invisibleGlowingItem);
             }
@@ -227,12 +205,12 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         ItemStack frame;
         Player p = event.getPlayer();
         if(p.getInventory().getItemInMainHand().getType() == Material.ITEM_FRAME ||
-                (glowFrame != null && p.getInventory().getItemInMainHand().getType() == glowFrame))
+                (p.getInventory().getItemInMainHand().getType() == Material.GLOW_ITEM_FRAME))
         {
             frame = p.getInventory().getItemInMainHand();
         }
         else if(p.getInventory().getItemInOffHand().getType() == Material.ITEM_FRAME ||
-                (glowFrame != null && p.getInventory().getItemInOffHand().getType() == glowFrame))
+                (p.getInventory().getItemInOffHand().getType() == Material.GLOW_ITEM_FRAME))
         {
             frame = p.getInventory().getItemInOffHand();
         }
@@ -290,7 +268,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     private void onItemSpawn(ItemSpawnEvent event)
     {
         Item item = event.getEntity();
-        if(item.getItemStack().getType() != Material.ITEM_FRAME && (glowFrame == null || item.getItemStack().getType() != glowFrame))
+        if(item.getItemStack().getType() != Material.ITEM_FRAME && item.getItemStack().getType() != Material.GLOW_ITEM_FRAME)
         {
             return;
         }
@@ -302,12 +280,12 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             if(droppedFrameLocation.isFrame(item))
             {
                 ItemStack frame = generateInvisibleItemFrame();
-                if(glowFrame != null && item.getItemStack().getType() == glowFrame)
+                if(item.getItemStack().getType() == Material.GLOW_ITEM_FRAME)
                 {
                     ItemMeta meta = frame.getItemMeta();
                     meta.displayName(Component.text("Glow Invisible Item Frame").color(NamedTextColor.WHITE));
                     frame.setItemMeta(meta);
-                    frame.setType(glowFrame);
+                    frame.setType(Material.GLOW_ITEM_FRAME);
                 }
                 event.getEntity().setItemStack(frame);
                 
