@@ -135,6 +135,11 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     {
         return entity instanceof ItemFrame;
     }
+
+    private boolean isFrameItem(ItemStack item)
+    {
+        return item.getType() == Material.ITEM_FRAME || item.getType() == Material.GLOW_ITEM_FRAME;
+    }
     
     public static ItemStack generateInvisibleItemFrame(boolean glowing)
     {
@@ -202,13 +207,11 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         // Get the frame item that the player placed
         ItemStack frame;
         Player p = event.getPlayer();
-        if(p.getInventory().getItemInMainHand().getType() == Material.ITEM_FRAME ||
-                (p.getInventory().getItemInMainHand().getType() == Material.GLOW_ITEM_FRAME))
+        if(isFrameItem(p.getInventory().getItemInMainHand()))
         {
             frame = p.getInventory().getItemInMainHand();
         }
-        else if(p.getInventory().getItemInOffHand().getType() == Material.ITEM_FRAME ||
-                (p.getInventory().getItemInOffHand().getType() == Material.GLOW_ITEM_FRAME))
+        else if(isFrameItem(p.getInventory().getItemInOffHand()))
         {
             frame = p.getInventory().getItemInOffHand();
         }
@@ -266,7 +269,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     private void onItemSpawn(ItemSpawnEvent event)
     {
         Item item = event.getEntity();
-        if(item.getItemStack().getType() != Material.ITEM_FRAME && item.getItemStack().getType() != Material.GLOW_ITEM_FRAME)
+        if(!isFrameItem(item.getItemStack()))
         {
             return;
         }
