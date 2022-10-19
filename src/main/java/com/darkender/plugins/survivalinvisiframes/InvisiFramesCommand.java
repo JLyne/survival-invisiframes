@@ -99,7 +99,7 @@ public class InvisiFramesCommand implements CommandExecutor, TabCompleter
         }
         
         Player player = (Player) sender;
-        player.getInventory().addItem(SurvivalInvisiframes.generateInvisibleItemFrame());
+        player.getInventory().addItem(SurvivalInvisiframes.generateInvisibleItemFrame(false));
         player.sendMessage(ChatColor.GREEN + "Added an invisible item frame to your inventory");
     }
 }

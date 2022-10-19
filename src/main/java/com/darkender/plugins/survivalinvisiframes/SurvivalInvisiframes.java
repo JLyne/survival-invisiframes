@@ -2,6 +2,7 @@ package com.darkender.plugins.survivalinvisiframes;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
@@ -91,7 +92,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             forceRecheck();
         }
     
-        ItemStack invisibleItem = generateInvisibleItemFrame();
+        ItemStack invisibleItem = generateInvisibleItemFrame(false);
         invisibleItem.setAmount(8);
         
         List<ItemStack> invisibilityPotions = (List<ItemStack>) getConfig().getList("recipes", Collections.emptyList());
@@ -135,13 +136,16 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         return entity instanceof ItemFrame;
     }
     
-    public static ItemStack generateInvisibleItemFrame()
+    public static ItemStack generateInvisibleItemFrame(boolean glowing)
     {
-        ItemStack item = new ItemStack(Material.ITEM_FRAME, 1);
+        ItemStack item = new ItemStack(glowing ? Material.GLOW_ITEM_FRAME : Material.ITEM_FRAME, 1);
         ItemMeta meta = item.getItemMeta();
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         meta.addEnchant(Enchantment.DURABILITY, 1 ,true);
-        meta.displayName(Component.text("Invisible Item Frame").color(NamedTextColor.WHITE));
+
+        String name = glowing ? "Glow Invisible Item Frame" : "Invisible Item Frame";
+
+        meta.displayName(Component.text(name).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
         meta.getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
         item.setItemMeta(meta);
         return item;
@@ -182,13 +186,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             
             if(foundFrame && foundInkSac && event.getView().getPlayer().hasPermission("survivalinvisiframes.craft"))
             {
-                ItemStack invisibleGlowingItem = generateInvisibleItemFrame();
-                ItemMeta meta = invisibleGlowingItem.getItemMeta();
-                meta.displayName(Component.text("Glow Invisible Item Frame").color(NamedTextColor.WHITE));
-                invisibleGlowingItem.setItemMeta(meta);
-                invisibleGlowingItem.setType(Material.GLOW_ITEM_FRAME);
-                
-                event.getInventory().setResult(invisibleGlowingItem);
+                event.getInventory().setResult(generateInvisibleItemFrame(true));
             }
         }
     }
@@ -279,14 +277,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             DroppedFrameLocation droppedFrameLocation = iter.next();
             if(droppedFrameLocation.isFrame(item))
             {
-                ItemStack frame = generateInvisibleItemFrame();
-                if(item.getItemStack().getType() == Material.GLOW_ITEM_FRAME)
-                {
-                    ItemMeta meta = frame.getItemMeta();
-                    meta.displayName(Component.text("Glow Invisible Item Frame").color(NamedTextColor.WHITE));
-                    frame.setItemMeta(meta);
-                    frame.setType(Material.GLOW_ITEM_FRAME);
-                }
+                ItemStack frame = generateInvisibleItemFrame(item.getItemStack().getType() == Material.GLOW_ITEM_FRAME);
                 event.getEntity().setItemStack(frame);
                 
                 droppedFrameLocation.getRemoval().cancel();
