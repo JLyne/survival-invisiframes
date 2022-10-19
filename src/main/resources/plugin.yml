@@ -1,6 +1,6 @@
 name: SurvivalInvisiframes
 version: ${project.version}
-api-version: 1.16
+api-version: 1.19
 main: com.darkender.plugins.survivalinvisiframes.SurvivalInvisiframes
 author: Techdoodle
 commands:
