@@ -16,7 +16,6 @@ Permission | Description
 `survivalinvisiframes.reload` | Permission to run `/iframe reload`
 `survivalinvisiframes.forcerecheck` | Permission to run `/iframe force-recheck`
 `survivalinvisiframes.get` | Permission to run `/iframe get`
-`survivalinvisiframes.setitem` | Permission to run `/iframe setitem`
 
 ## Commands
 Permission required for all commands: `survivalinvisiframes.cmd`
@@ -26,7 +25,6 @@ Command | Description | Permission
 `/iframe` or `/iframe get` | Gives the player an invisible item frame | `survivalinvisiframes.get`
 `/iframe reload` | Reloads the config | `survivalinvisiframes.reload`
 `/iframe force-recheck` | Rechecks all loaded invisible item frames to add/remove slimes manually | `survivalinvisiframes.forcerecheck`
-`/iframe setitem` | Sets the recipe center item to the held item | `survivalinvisiframes.setitem`
 
 ## Config
 ```yaml
@@ -34,8 +32,7 @@ Command | Description | Permission
 # This will also make them visible when there's no item in them
 item-frames-glow: true
 
-# The item in the center of the recipe
-# Recommended to use "/iframe setitem" to change this
+# The items which can be in the center of the recipe
 recipe:
   ==: org.bukkit.inventory.ItemStack
   v: 2567

@@ -2,13 +2,21 @@
 # This will also make them visible when there's no item in them
 item-frames-glow: true
 
-# The item in the center of the recipe
-# Recommended to use "/iframe setitem" to change this
-recipe:
-  ==: org.bukkit.inventory.ItemStack
-  v: 2567
-  type: LINGERING_POTION
-  meta:
-    ==: ItemMeta
-    meta-type: POTION
-    potion-type: minecraft:invisibility
+# The items which can be in the center of the recipe
+recipes:
+  -
+    ==: org.bukkit.inventory.ItemStack
+    v: 2567
+    type: LINGERING_POTION
+    meta:
+      ==: ItemMeta
+      meta-type: POTION
+      potion-type: minecraft:invisibility
+  -
+    ==: org.bukkit.inventory.ItemStack
+    v: 2567
+    type: LINGERING_POTION
+    meta:
+      ==: ItemMeta
+      meta-type: POTION
+      potion-type: minecraft:long_invisibility

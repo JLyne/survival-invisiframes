@@ -20,8 +20,10 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class SurvivalInvisiframes extends JavaPlugin implements Listener
@@ -112,11 +114,11 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         ItemStack invisibleItem = generateInvisibleItemFrame();
         invisibleItem.setAmount(8);
         
-        ItemStack invisibilityPotion = getConfig().getItemStack("recipe");
+        List<ItemStack> invisibilityPotions = (List<ItemStack>) getConfig().getList("recipes", Collections.emptyList());
         ShapedRecipe invisRecipe = new ShapedRecipe(invisibleRecipe, invisibleItem);
         invisRecipe.shape("FFF", "FPF", "FFF");
         invisRecipe.setIngredient('F', Material.ITEM_FRAME);
-        invisRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotion));
+        invisRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotions.toArray(new ItemStack[0])));
         Bukkit.addRecipe(invisRecipe);
     }
     
