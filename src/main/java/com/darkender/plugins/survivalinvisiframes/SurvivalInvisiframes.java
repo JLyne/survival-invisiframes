@@ -146,7 +146,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         ItemStack item = new ItemStack(glowing ? Material.GLOW_ITEM_FRAME : Material.ITEM_FRAME, 1);
         ItemMeta meta = item.getItemMeta();
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        meta.addEnchant(Enchantment.DURABILITY, 1 ,true);
+        meta.addEnchant(Enchantment.UNBREAKING, 1 ,true);
 
         String name = glowing ? "Glow Invisible Item Frame" : "Invisible Item Frame";
 
