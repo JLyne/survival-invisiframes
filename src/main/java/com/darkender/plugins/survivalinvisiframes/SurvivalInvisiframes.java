@@ -1,5 +1,6 @@
 package com.darkender.plugins.survivalinvisiframes;
 
+import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.text.Component;
@@ -17,12 +18,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -144,7 +143,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
 
     private boolean isFrameItem(ItemStack item)
     {
-        return item.getType() == Material.ITEM_FRAME || item.getType() == Material.GLOW_ITEM_FRAME;
+        return item != null && (item.getType() == Material.ITEM_FRAME || item.getType() == Material.GLOW_ITEM_FRAME);
     }
     
     public ItemStack generateInvisibleItemFrame(boolean glowing)
@@ -296,52 +295,27 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         }
     }
     
-    @EventHandler(ignoreCancelled = true)
-    private void onPlayerInteractEntity(PlayerInteractEntityEvent event)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    private void onChangeItemFrame(PlayerItemFrameChangeEvent event)
     {
-        if(!framesGlow)
+        ItemFrame frame = event.getItemFrame();
+
+        if(!event.getItemFrame().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
         {
             return;
         }
-        
-        if(isFrameEntity(event.getRightClicked()) &&
-                event.getRightClicked().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
+
+        if(event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE)
         {
-            ItemFrame frame = (ItemFrame) event.getRightClicked();
-            Bukkit.getScheduler().runTaskLater(this, () ->
-            {
-                if(frame.getItem().getType() != Material.AIR)
-                {
-                    frame.setGlowing(false);
-                    frame.setVisible(false);
-                }
-            }, 1L);
-        }
-    }
-    
-    @EventHandler(ignoreCancelled = true)
-    private void onEntityDamageByEntity(EntityDamageByEntityEvent event)
-    {
-        if(!framesGlow)
-        {
+            frame.setGlowing(false);
+            frame.setVisible(false);
             return;
         }
-        
-        if(isFrameEntity(event.getEntity()) &&
-                event.getEntity().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
+
+        if(event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.REMOVE)
         {
-            ItemFrame frame = (ItemFrame) event.getEntity();
-            Bukkit.getScheduler().runTaskLater(this, () ->
-            {
-                if(frame.getItem().getType() == Material.AIR)
-                {
-                    if(framesGlow)
-                    {
-                        frame.setGlowing(true);
-                        frame.setVisible(true);
-                    }
-                }
-            }, 1L);
+            frame.setGlowing(framesGlow);
+            frame.setVisible(true);
         }
     }
 }
