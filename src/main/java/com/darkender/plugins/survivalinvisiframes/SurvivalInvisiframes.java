@@ -243,7 +243,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         }
     }
     
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     private void onHangingBreak(HangingBreakEvent event)
     {
         if(!isFrameEntity(event.getEntity()) || !event.getEntity().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
