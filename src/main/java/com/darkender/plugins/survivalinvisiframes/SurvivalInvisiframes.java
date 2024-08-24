@@ -200,29 +200,17 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     private void onHangingPlace(HangingPlaceEvent event)
     {
-        if(!isFrameEntity(event.getEntity()) || event.getPlayer() == null)
-        {
-            return;
-        }
-        
         // Get the frame item that the player placed
-        ItemStack frame;
+        ItemStack frame = event.getItemStack();
         Player p = event.getPlayer();
-        if(isFrameItem(p.getInventory().getItemInMainHand()))
-        {
-            frame = p.getInventory().getItemInMainHand();
-        }
-        else if(isFrameItem(p.getInventory().getItemInOffHand()))
-        {
-            frame = p.getInventory().getItemInOffHand();
-        }
-        else
+
+        if(p == null || !isFrameItem(frame))
         {
             return;
         }
         
         // If the frame item has the invisible tag, make the placed item frame invisible
-        if(frame.getItemMeta().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
+        if(frame.getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
         {
             if(!p.hasPermission("survivalinvisiframes.place"))
             {
