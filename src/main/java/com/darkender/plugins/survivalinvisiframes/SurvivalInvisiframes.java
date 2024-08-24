@@ -1,11 +1,19 @@
 package com.darkender.plugins.survivalinvisiframes;
 
+import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -18,6 +26,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -27,11 +36,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+@SuppressWarnings("UnstableApiUsage")
 public class SurvivalInvisiframes extends JavaPlugin implements Listener
 {
-    private NamespacedKey invisibleRecipe;
-    private static NamespacedKey invisibleKey;
-    private Set<DroppedFrameLocation> droppedFrames;
+    private final NamespacedKey invisibleRecipe = new NamespacedKey(this, "invisible-recipe");
+    public final NamespacedKey invisibleKey = new NamespacedKey(this, "invisible");
+    private final Set<DroppedFrameLocation> droppedFrames = new HashSet<>();
     
     private boolean framesGlow;
     private boolean firstLoad = true;
@@ -39,17 +49,13 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     @Override
     public void onEnable()
     {
-        invisibleRecipe = new NamespacedKey(this, "invisible-recipe");
-        invisibleKey = new NamespacedKey(this, "invisible");
-        
-        droppedFrames = new HashSet<>();
-
         reload();
         
         getServer().getPluginManager().registerEvents(this, this);
-        InvisiFramesCommand invisiFramesCommand = new InvisiFramesCommand(this);
-        getCommand("iframe").setExecutor(invisiFramesCommand);
-        getCommand("iframe").setTabCompleter(invisiFramesCommand);
+
+        LifecycleEventManager<Plugin> manager = getLifecycleManager();
+        manager.registerEventHandler(LifecycleEvents.COMMANDS, event ->
+                new InvisiFramesCommand(this, event.registrar()));
     }
     
     @Override
@@ -141,7 +147,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         return item.getType() == Material.ITEM_FRAME || item.getType() == Material.GLOW_ITEM_FRAME;
     }
     
-    public static ItemStack generateInvisibleItemFrame(boolean glowing)
+    public ItemStack generateInvisibleItemFrame(boolean glowing)
     {
         ItemStack item = new ItemStack(glowing ? Material.GLOW_ITEM_FRAME : Material.ITEM_FRAME, 1);
         ItemMeta meta = item.getItemMeta();

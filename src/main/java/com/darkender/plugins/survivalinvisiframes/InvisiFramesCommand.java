@@ -1,109 +1,73 @@
 package com.darkender.plugins.survivalinvisiframes;
 
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.bukkit.util.StringUtil;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import static io.papermc.paper.command.brigadier.Commands.literal;
 
-public class InvisiFramesCommand implements CommandExecutor, TabCompleter
+@SuppressWarnings("UnstableApiUsage")
+public class InvisiFramesCommand
 {
-    private SurvivalInvisiframes survivalInvisiframes;
-    
-    public InvisiFramesCommand(SurvivalInvisiframes survivalInvisiframes)
+    private final SurvivalInvisiframes plugin;
+
+    public InvisiFramesCommand(SurvivalInvisiframes plugin, Commands commands)
     {
-        this.survivalInvisiframes = survivalInvisiframes;
+        this.plugin = plugin;
+
+        LiteralCommandNode<CommandSourceStack> getCommand = literal("reload")
+                .requires(source -> source.getSender().hasPermission("survivalinvisiframes.reload"))
+                .executes(ctx -> {
+                    plugin.reload();
+                    ctx.getSource().getSender()
+                            .sendMessage(Component.text("Configuration has been reloaded")
+                                                 .color(NamedTextColor.GREEN));
+                    return Command.SINGLE_SUCCESS;
+                })
+                .build();
+
+        LiteralCommandNode<CommandSourceStack> reloadCommand = literal("get")
+                .requires(source -> source.getSender().hasPermission("survivalinvisiframes.get"))
+                .executes(ctx -> giveItem(ctx.getSource().getSender()))
+                .build();
+
+        LiteralCommandNode<CommandSourceStack> forceRecheckCommand = literal("force-recheck")
+                .requires(source -> source.getSender().hasPermission("survivalinvisiframes.reload"))
+                .executes(ctx -> {
+                    plugin.forceRecheck();
+                    ctx.getSource().getSender()
+                            .sendMessage(Component.text("Rechecked invisible item frames")
+                                                 .color(NamedTextColor.GREEN));
+                    return Command.SINGLE_SUCCESS;
+                })
+                .build();
+
+        commands.register(literal("iframe")
+								  .requires(source -> source.getSender().hasPermission("survivalinvisiframes.cmd"))
+                                  .then(getCommand)
+                                  .then(reloadCommand)
+                                  .then(forceRecheckCommand)
+								  .build(), "Main command");
     }
     
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args)
+    private int giveItem(CommandSender sender)
     {
-        if(args.length == 0 || args[0].equalsIgnoreCase("get"))
+        if(!(sender instanceof Player player))
         {
-            giveItem(sender);
-            return true;
-        }
-        else if(args[0].equalsIgnoreCase("reload"))
-        {
-            if(!sender.hasPermission("survivalinvisiframes.reload"))
-            {
-                sendNoPermissionMessage(sender);
-                return true;
-            }
-            survivalInvisiframes.reload();
-            sender.sendMessage(Component.text("Configuration has been reloaded").color(NamedTextColor.GREEN));
-            return true;
-        }
-        else if(args[0].equalsIgnoreCase("force-recheck"))
-        {
-            if(!sender.hasPermission("survivalinvisiframes.forcerecheck"))
-            {
-                sendNoPermissionMessage(sender);
-                return true;
-            }
-            survivalInvisiframes.forceRecheck();
-            sender.sendMessage(Component.text("Rechecked invisible item frames").color(NamedTextColor.GREEN));
-            return true;
-        }
-        return false;
-    }
-    
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args)
-    {
-        if(args.length != 1)
-        {
-            return Collections.emptyList();
-        }
-        List<String> options = new ArrayList<>();
-        if(sender.hasPermission("survivalinvisiframes.get"))
-        {
-            options.add("get");
-        }
-        if(sender.hasPermission("survivalinvisiframes.reload"))
-        {
-            options.add("reload");
-        }
-        if(sender.hasPermission("survivalinvisiframes.forcerecheck"))
-        {
-            options.add("force-recheck");
-        }
-        List<String> completions = new ArrayList<>();
-        StringUtil.copyPartialMatches(args[0], options, completions);
-        Collections.sort(completions);
-        return completions;
-    }
-    
-    private void sendNoPermissionMessage(CommandSender sender)
-    {
-        sender.sendMessage(Component.text("Sorry, you don't have permission to run this command")
-                                   .color(NamedTextColor.RED));
-    }
-    
-    private void giveItem(CommandSender sender)
-    {
-        if(!sender.hasPermission("survivalinvisiframes.get"))
-        {
-            sendNoPermissionMessage(sender);
-            return;
-        }
-        if(!(sender instanceof Player))
-        {
-            sender.sendMessage(Component.text("Sorry, you must be a player to use this command!")
+            sender.sendMessage(Component.text("This command can only be used in-game")
                                        .color(NamedTextColor.RED));
-            return;
+            return Command.SINGLE_SUCCESS;
         }
-        
-        Player player = (Player) sender;
-        player.getInventory().addItem(SurvivalInvisiframes.generateInvisibleItemFrame(false));
+
+		player.getInventory().addItem(plugin.generateInvisibleItemFrame(false));
         player.sendMessage(Component.text("Added an invisible item frame to your inventory")
                                    .color(NamedTextColor.GREEN));
+
+        return Command.SINGLE_SUCCESS;
     }
 }
