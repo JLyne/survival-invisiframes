@@ -23,3 +23,6 @@ dependencies:
     CustomItems:
       load: AFTER
       required: false
+    CreativeItemFilter:
+      load: AFTER
+      required: false

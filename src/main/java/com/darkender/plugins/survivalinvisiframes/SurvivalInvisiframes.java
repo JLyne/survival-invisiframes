@@ -1,5 +1,6 @@
 package com.darkender.plugins.survivalinvisiframes;
 
+import com.darkender.plugins.survivalinvisiframes.creativeitemfilter.CreativeItemFilterHandler;
 import com.darkender.plugins.survivalinvisiframes.customitems.CustomItemsHandler;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
@@ -44,7 +45,9 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
     
     private boolean framesGlow;
     private boolean firstLoad = true;
+
     private CustomItemsHandler customItemsHandler;
+    private CreativeItemFilterHandler creativeItemFilterHandler;
 
     @Override
     public void onEnable()
@@ -68,11 +71,15 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
     @EventHandler
 	public void onPluginEnable(PluginEnableEvent event) {
 		switch (event.getPlugin().getName()) {
-			case "CustomItems" -> {
-				getLogger().info("Registering CustomItems provider");
-				customItemsHandler = new CustomItemsHandler(this);
-			}
-		}
+            case "CustomItems" -> {
+                getLogger().info("Registering CustomItems provider");
+                customItemsHandler = new CustomItemsHandler(this);
+            }
+            case "CreativeItemFilter" -> {
+                getLogger().info("Initialising CreativeItemFilter handler");
+                creativeItemFilterHandler = new CreativeItemFilterHandler(this);
+            }
+        }
 	}
 
 	@EventHandler
@@ -82,6 +89,12 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
 				if (customItemsHandler != null) {
 					getLogger().info("Disabling CustomItems provider");
 					customItemsHandler = null;
+				}
+			}
+            case "CreativeItemFilter" -> {
+				if (creativeItemFilterHandler != null) {
+					getLogger().info("Disabling WorldGuard handler");
+					creativeItemFilterHandler = null;
 				}
 			}
 		}
