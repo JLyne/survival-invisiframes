@@ -1,5 +1,6 @@
 package com.darkender.plugins.survivalinvisiframes;
 
+import com.darkender.plugins.survivalinvisiframes.customitems.CustomItemsHandler;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -19,6 +20,8 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.server.PluginDisableEvent;
+import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -33,7 +36,7 @@ import java.util.List;
 import java.util.Set;
 
 @SuppressWarnings("UnstableApiUsage")
-public class SurvivalInvisiframes extends JavaPlugin implements Listener
+public final class SurvivalInvisiframes extends JavaPlugin implements Listener
 {
     private final NamespacedKey invisibleRecipe = new NamespacedKey(this, "invisible-recipe");
     public final NamespacedKey invisibleKey = new NamespacedKey(this, "invisible");
@@ -41,7 +44,8 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     
     private boolean framesGlow;
     private boolean firstLoad = true;
-    
+    private CustomItemsHandler customItemsHandler;
+
     @Override
     public void onEnable()
     {
@@ -60,6 +64,28 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         // Remove added recipes on plugin disable
         removeRecipe();
     }
+
+    @EventHandler
+	public void onPluginEnable(PluginEnableEvent event) {
+		switch (event.getPlugin().getName()) {
+			case "CustomItems" -> {
+				getLogger().info("Registering CustomItems provider");
+				customItemsHandler = new CustomItemsHandler(this);
+			}
+		}
+	}
+
+	@EventHandler
+	public void onPluginDisable(PluginDisableEvent event) {
+		switch (event.getPlugin().getName()) {
+			case "CustomItems" -> {
+				if (customItemsHandler != null) {
+					getLogger().info("Disabling CustomItems provider");
+					customItemsHandler = null;
+				}
+			}
+		}
+	}
     
     private void removeRecipe()
     {
@@ -138,7 +164,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         return entity instanceof ItemFrame;
     }
 
-    private boolean isFrameItem(ItemStack item)
+    public boolean isFrameItem(ItemStack item)
     {
         return item != null && (item.getType() == Material.ITEM_FRAME || item.getType() == Material.GLOW_ITEM_FRAME);
     }

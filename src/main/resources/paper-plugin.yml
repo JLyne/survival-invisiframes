@@ -17,3 +17,9 @@ permissions:
     default: op
   survivalinvisiframes.get:
     default: op
+
+dependencies:
+  server:
+    CustomItems:
+      load: AFTER
+      required: false
