@@ -2,6 +2,7 @@ package com.darkender.plugins.survivalinvisiframes;
 
 import com.darkender.plugins.survivalinvisiframes.creativeitemfilter.CreativeItemFilterHandler;
 import com.darkender.plugins.survivalinvisiframes.customitems.CustomItemsHandler;
+import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -184,15 +185,16 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
     
     public ItemStack generateInvisibleItemFrame(boolean glowing)
     {
-        ItemStack item = new ItemStack(glowing ? Material.GLOW_ITEM_FRAME : Material.ITEM_FRAME, 1);
-        ItemMeta meta = item.getItemMeta();
-
         String name = glowing ? "Glow Invisible Item Frame" : "Invisible Item Frame";
 
-        meta.itemName(Component.text(name));
-        meta.setEnchantmentGlintOverride(true);
+        ItemStack item = new ItemStack(glowing ? Material.GLOW_ITEM_FRAME : Material.ITEM_FRAME, 1);
+        ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
         item.setItemMeta(meta);
+
+        item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
+        item.setData(DataComponentTypes.ITEM_NAME, Component.text(name));
+
         return item;
     }
     
@@ -217,7 +219,7 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
                     continue;
                 }
                 
-                if(i.getItemMeta().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE) &&
+                if(i.getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE) &&
                         i.getType() != Material.GLOW_ITEM_FRAME)
                 {
                     if(foundFrame) return;
