@@ -3,10 +3,12 @@ package com.darkender.plugins.survivalinvisiframes;
 import com.darkender.plugins.survivalinvisiframes.creativeitemfilter.CreativeItemFilterHandler;
 import com.darkender.plugins.survivalinvisiframes.customitems.CustomItemsHandler;
 import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.ItemLore;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -41,6 +43,8 @@ import java.util.Set;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
+	private final MiniMessage miniMessage = MiniMessage.miniMessage();
+
 	private ShapedRecipe frameRecipe;
 	private ShapedRecipe glowRecipe;
 
@@ -53,6 +57,11 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 
 	private boolean framesGlow;
 	private boolean firstLoad = true;
+
+    private Component invisibleFrameName;
+    private List<Component> invisibleFrameLore;
+    private Component glowInvisibleFrameName;
+    private List<Component> glowInvisibleFrameLore;
 
 	private CustomItemsHandler customItemsHandler;
 	private CreativeItemFilterHandler creativeItemFilterHandler;
@@ -132,6 +141,15 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 			forceRecheck();
 		}
 
+		invisibleFrameName = getConfig().getRichMessage("invisible-frame-name",
+														Component.text("Invisible Item Frame"));
+		glowInvisibleFrameName = getConfig().getRichMessage("glow-invisible-frame-name",
+														Component.text("Glow Invisible Item Frame"));
+		invisibleFrameLore = getConfig().getStringList("invisible-frame-lore")
+				.stream().map(miniMessage::deserialize).toList();
+		glowInvisibleFrameLore = getConfig().getStringList("glow-invisible-frame-lore")
+				.stream().map(miniMessage::deserialize).toList();
+
 		ItemStack invisibleFrame = generateInvisibleItemFrame(false);
 		invisibleFrame.setAmount(8);
 
@@ -190,15 +208,18 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 	}
 
 	public ItemStack generateInvisibleItemFrame(boolean glowing) {
-		String name = glowing ? "Glow Invisible Item Frame" : "Invisible Item Frame";
-
 		ItemStack item = new ItemStack(glowing ? Material.GLOW_ITEM_FRAME : Material.ITEM_FRAME, 1);
 		ItemMeta meta = item.getItemMeta();
 		meta.getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
 		item.setItemMeta(meta);
 
 		item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
-		item.setData(DataComponentTypes.ITEM_NAME, Component.text(name));
+		item.setData(DataComponentTypes.ITEM_NAME, glowing ? glowInvisibleFrameName : invisibleFrameName);
+		List<Component> lore = glowing ? glowInvisibleFrameLore : invisibleFrameLore;
+
+		if(!lore.isEmpty()) {
+		    item.setData(DataComponentTypes.LORE, ItemLore.lore(lore));
+		}
 
 		return item;
 	}
