@@ -12,6 +12,8 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Hanging;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -40,7 +42,13 @@ import java.util.Set;
 @SuppressWarnings("UnstableApiUsage")
 public final class SurvivalInvisiframes extends JavaPlugin implements Listener
 {
-    private final NamespacedKey invisibleRecipe = new NamespacedKey(this, "invisible-recipe");
+    private ShapedRecipe frameRecipe;
+    private ShapedRecipe glowRecipe;
+
+    private final NamespacedKey recipeKey = new NamespacedKey(this, "frame");
+    private final NamespacedKey glowRecipeKey = new NamespacedKey(this, "glow_frame");
+    private final NamespacedKey vanillaGlowRecipe = NamespacedKey.minecraft("glow_item_frame");
+
     public final NamespacedKey invisibleKey = new NamespacedKey(this, "invisible");
     private final Set<DroppedFrameLocation> droppedFrames = new HashSet<>();
     
@@ -66,7 +74,7 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
     public void onDisable()
     {
         // Remove added recipes on plugin disable
-        removeRecipe();
+        removeRecipes();
     }
 
     @EventHandler
@@ -100,18 +108,14 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
 			}
 		}
 	}
-    
-    private void removeRecipe()
-    {
-        Iterator<Recipe> iter = getServer().recipeIterator();
-        while(iter.hasNext())
-        {
-            Recipe check = iter.next();
-            if(isInvisibleRecipe(check))
-            {
-                iter.remove();
-                break;
-            }
+
+    private void removeRecipes() {
+        if(frameRecipe != null) {
+            Bukkit.removeRecipe(frameRecipe.getKey());
+        }
+
+        if(glowRecipe != null) {
+            Bukkit.removeRecipe(glowRecipe.getKey());
         }
     }
 
@@ -121,7 +125,7 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
         reloadConfig();
         getConfig().options().copyDefaults(true);
         saveConfig();
-        removeRecipe();
+        removeRecipes();
         
         if(firstLoad)
         {
@@ -134,15 +138,26 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
             forceRecheck();
         }
     
-        ItemStack invisibleItem = generateInvisibleItemFrame(false);
-        invisibleItem.setAmount(8);
+        ItemStack invisibleFrame = generateInvisibleItemFrame(false);
+        invisibleFrame.setAmount(8);
+
+        ItemStack glowInvisibleFrame = generateInvisibleItemFrame(true);
+        glowInvisibleFrame.setAmount(8);
         
         List<ItemStack> invisibilityPotions = (List<ItemStack>) getConfig().getList("recipes", Collections.emptyList());
-        ShapedRecipe invisRecipe = new ShapedRecipe(invisibleRecipe, invisibleItem);
-        invisRecipe.shape("FFF", "FPF", "FFF");
-        invisRecipe.setIngredient('F', Material.ITEM_FRAME);
-        invisRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotions.toArray(new ItemStack[0])));
-        Bukkit.addRecipe(invisRecipe);
+
+        frameRecipe = new ShapedRecipe(recipeKey, invisibleFrame);
+        frameRecipe.shape("FFF", "FPF", "FFF");
+        frameRecipe.setIngredient('F', Material.ITEM_FRAME);
+        frameRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotions.toArray(new ItemStack[0])));
+
+        glowRecipe = new ShapedRecipe(glowRecipeKey, glowInvisibleFrame);
+        glowRecipe.shape("FFF", "FPF", "FFF");
+        glowRecipe.setIngredient('F', Material.GLOW_ITEM_FRAME);
+        glowRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotions.toArray(new ItemStack[0])));
+
+        Bukkit.addRecipe(frameRecipe);
+        Bukkit.addRecipe(glowRecipe);
     }
     
     public void forceRecheck()
@@ -151,7 +166,7 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
         {
             for(ItemFrame frame : world.getEntitiesByClass(ItemFrame.class))
             {
-                if(frame.getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
+                if(isInvisibleItemFrame(frame))
                 {
                     if(frame.getItem().getType() == Material.AIR && framesGlow)
                     {
@@ -168,11 +183,6 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
         }
     }
     
-    private boolean isInvisibleRecipe(Recipe recipe)
-    {
-        return (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(invisibleRecipe));
-    }
-    
     private boolean isFrameEntity(Entity entity)
     {
         return entity instanceof ItemFrame;
@@ -181,6 +191,17 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
     public boolean isFrameItem(ItemStack item)
     {
         return item != null && (item.getType() == Material.ITEM_FRAME || item.getType() == Material.GLOW_ITEM_FRAME);
+    }
+
+    public boolean isInvisibleItemFrame(ItemStack item) {
+        return item != null
+                && (item.getType() == Material.ITEM_FRAME || item.getType() == Material.GLOW_ITEM_FRAME)
+                && item.getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE);
+    }
+
+    public boolean isInvisibleItemFrame(Hanging frame) {
+        return frame instanceof ItemFrame
+                && frame.getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE);
     }
     
     public ItemStack generateInvisibleItemFrame(boolean glowing)
@@ -199,41 +220,28 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
     }
     
     @EventHandler(ignoreCancelled = true)
-    private void onCraft(PrepareItemCraftEvent event)
-    {
-        if(isInvisibleRecipe(event.getRecipe()) && !event.getView().getPlayer().hasPermission("survivalinvisiframes.craft"))
-        {
-            event.getInventory().setResult(null);
-        }
-        else {
-            boolean foundFrame = false;
-            boolean foundInkSac = false;
-            for(ItemStack i : event.getInventory().getMatrix())
-            {
-                if(i == null || i.getType() == Material.AIR) continue;
-                
-                if(i.getType() == Material.GLOW_INK_SAC)
-                {
-                    if(foundInkSac) return;
-                    foundInkSac = true;
-                    continue;
+    private void onCraft(PrepareItemCraftEvent event) {
+        HumanEntity crafter = event.getView().getPlayer();
+
+        if(event.getRecipe() instanceof CraftingRecipe recipe) {
+            NamespacedKey key = recipe.getKey();
+            getLogger().info(String.valueOf(key));
+
+            // Permission check for new crafting recipes
+            if((key.equals(recipeKey) || key.equals(glowRecipeKey)) &&
+                    !crafter.hasPermission("survivalinvisiframes.craft")) {
+                event.getInventory().setResult(null);
+            } else if(key.equals(vanillaGlowRecipe)) { // Vanilla glow recipe with invisible frame
+                for(ItemStack i : event.getInventory().getMatrix()) {
+                    if(i == null || i.getType() == Material.AIR) {
+                        continue;
+                    }
+
+                    if(isInvisibleItemFrame(i)) {
+                        boolean hasPermission = crafter.hasPermission("survivalinvisiframes.craft");
+                        event.getInventory().setResult(hasPermission ? generateInvisibleItemFrame(true) : null);
+                    }
                 }
-                
-                if(i.getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE) &&
-                        i.getType() != Material.GLOW_ITEM_FRAME)
-                {
-                    if(foundFrame) return;
-                    foundFrame = true;
-                    continue;
-                }
-                
-                // Item isn't what we're looking for
-                return;
-            }
-            
-            if(foundFrame && foundInkSac && event.getView().getPlayer().hasPermission("survivalinvisiframes.craft"))
-            {
-                event.getInventory().setResult(generateInvisibleItemFrame(true));
             }
         }
     }
@@ -251,7 +259,7 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
         }
         
         // If the frame item has the invisible tag, make the placed item frame invisible
-        if(frame.getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
+        if(isInvisibleItemFrame(frame))
         {
             if(!p.hasPermission("survivalinvisiframes.place"))
             {
@@ -275,7 +283,7 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     private void onHangingBreak(HangingBreakEvent event)
     {
-        if(!isFrameEntity(event.getEntity()) || !event.getEntity().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
+        if(!isFrameEntity(event.getEntity()) || !isInvisibleItemFrame(event.getEntity()))
         {
             return;
         }
@@ -321,24 +329,20 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener
     }
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    private void onChangeItemFrame(PlayerItemFrameChangeEvent event)
-    {
+    private void onChangeItemFrame(PlayerItemFrameChangeEvent event) {
         ItemFrame frame = event.getItemFrame();
 
-        if(!event.getItemFrame().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
-        {
+        if(!isInvisibleItemFrame(event.getItemFrame())) {
             return;
         }
 
-        if(event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE)
-        {
+        if(event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE) {
             frame.setGlowing(false);
             frame.setVisible(false);
             return;
         }
 
-        if(event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.REMOVE)
-        {
+        if(event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.REMOVE) {
             frame.setGlowing(framesGlow);
             frame.setVisible(true);
         }
