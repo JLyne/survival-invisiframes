@@ -1,6 +1,6 @@
 # Whether or not to enable invisible item frames glowing when there's no item in them
 # This will also make them visible when there's no item in them
-item-frames-glow: true
+empty-item-frames-glow: true
 
 # The items which can be in the center of the recipe
 recipes:

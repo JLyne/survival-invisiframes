@@ -125,10 +125,10 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 
 		if (firstLoad) {
 			firstLoad = false;
-			framesGlow = !getConfig().getBoolean("item-frames-glow");
+			framesGlow = !getConfig().getBoolean("empty-item-frames-glow");
 		}
-		if (getConfig().getBoolean("item-frames-glow") != framesGlow) {
-			framesGlow = getConfig().getBoolean("item-frames-glow");
+		if (getConfig().getBoolean("empty-item-frames-glow") != framesGlow) {
+			framesGlow = getConfig().getBoolean("empty-item-frames-glow");
 			forceRecheck();
 		}
 
