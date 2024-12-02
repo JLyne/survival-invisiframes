@@ -263,7 +263,6 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 
 		if (event.getRecipe() instanceof CraftingRecipe recipe) {
 			NamespacedKey key = recipe.getKey();
-			getLogger().info(String.valueOf(key));
 
 			// Permission check for new crafting recipes
 			if ((key.equals(recipeKey) || key.equals(glowRecipeKey)) &&
