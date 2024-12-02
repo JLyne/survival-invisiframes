@@ -30,10 +30,13 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -68,11 +71,12 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 
 	@Override
 	public void onEnable() {
+		initConfig();
 		reload();
 
 		getServer().getPluginManager().registerEvents(this, this);
 
-		LifecycleEventManager<Plugin> manager = getLifecycleManager();
+		LifecycleEventManager<@NotNull Plugin> manager = getLifecycleManager();
 		manager.registerEventHandler(LifecycleEvents.COMMANDS, event ->
 				new InvisiFramesCommand(this, event.registrar()));
 	}
@@ -115,6 +119,38 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 		}
 	}
 
+	private void initConfig() {
+		getConfig().options().copyDefaults(true);
+		getConfig().options().parseComments(true);
+
+		getConfig().addDefault("empty-item-frames-glow", true);
+		getConfig().addDefault("invisible-frame.name", "Invisible Item Frame");
+		getConfig().addDefault("invisible-frame.lore", Collections.emptyList());
+		getConfig().addDefault("glow-invisible-frame.name", "Glow Invisible Item Frame");
+		getConfig().addDefault("glow-invisible-frame.lore", Collections.emptyList());
+
+		ItemStack defaultRecipeItem = new ItemStack(Material.LINGERING_POTION);
+		PotionMeta meta = (PotionMeta) defaultRecipeItem.getItemMeta();
+		meta.setBasePotionType(PotionType.INVISIBILITY);
+		defaultRecipeItem.setItemMeta(meta);
+
+		ItemStack defaultRecipeItem2 = new ItemStack(Material.LINGERING_POTION);
+		PotionMeta meta2 = (PotionMeta) defaultRecipeItem.getItemMeta();
+		meta2.setBasePotionType(PotionType.LONG_INVISIBILITY);
+		defaultRecipeItem2.setItemMeta(meta2);
+
+		getConfig().addDefault("recipes", List.of(defaultRecipeItem, defaultRecipeItem2));
+		saveConfig();
+		reloadConfig();
+
+		getConfig().setComments("empty-item-frames-glow", List.of(
+				"Whether or not to enable invisible item frames glowing when there's no item in them",
+				"This will also make them visible when there's no item in them"));
+		getConfig().setComments("recipes",
+								Collections.singletonList("The items which can be in the center of the recipe"));
+		saveConfig();
+	}
+
 	private void removeRecipes() {
 		if (frameRecipe != null) {
 			Bukkit.removeRecipe(frameRecipe.getKey());
@@ -126,10 +162,7 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 	}
 
 	public void reload() {
-		saveDefaultConfig();
 		reloadConfig();
-		getConfig().options().copyDefaults(true);
-		saveConfig();
 		removeRecipes();
 
 		if (firstLoad) {
