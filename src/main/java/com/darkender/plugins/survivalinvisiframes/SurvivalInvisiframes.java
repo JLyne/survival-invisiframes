@@ -141,13 +141,13 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 			forceRecheck();
 		}
 
-		invisibleFrameName = getConfig().getRichMessage("invisible-frame-name",
+		invisibleFrameName = getConfig().getRichMessage("invisible-frame.name",
 														Component.text("Invisible Item Frame"));
-		glowInvisibleFrameName = getConfig().getRichMessage("glow-invisible-frame-name",
+		glowInvisibleFrameName = getConfig().getRichMessage("glow-invisible-frame.name",
 														Component.text("Glow Invisible Item Frame"));
-		invisibleFrameLore = getConfig().getStringList("invisible-frame-lore")
+		invisibleFrameLore = getConfig().getStringList("invisible-frame.lore")
 				.stream().map(miniMessage::deserialize).toList();
-		glowInvisibleFrameLore = getConfig().getStringList("glow-invisible-frame-lore")
+		glowInvisibleFrameLore = getConfig().getStringList("glow-invisible-frame.lore")
 				.stream().map(miniMessage::deserialize).toList();
 
 		ItemStack invisibleFrame = generateInvisibleItemFrame(false);
