@@ -1,6 +1,6 @@
 [versions]
 pluginYmlPaper = "0.7.1"
-paperApi = "1.21.4-R0.1-SNAPSHOT"
+paperApi = "1.21.5-R0.1-SNAPSHOT"
 customItems = "1.0-SNAPSHOT"
 creativeItemFilter = "3.0-SNAPSHOT"
 
