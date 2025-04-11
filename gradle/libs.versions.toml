@@ -1,0 +1,13 @@
+[versions]
+pluginYmlPaper = "0.7.1"
+paperApi = "1.21.4-R0.1-SNAPSHOT"
+customItems = "1.0-SNAPSHOT"
+creativeItemFilter = "3.0-SNAPSHOT"
+
+[libraries]
+paperApi = { group = "io.papermc.paper", name = "paper-api", version.ref = "paperApi" }
+customItems =  { group = "uk.co.notnull", name = "CustomItemsAPI", version.ref  = "customItems" }
+creativeItemFilter =  { group = "org.hurricanegames", name = "CreativeItemFilter", version.ref  = "creativeItemFilter" }
+
+[plugins]
+pluginYmlPaper = { id = "de.eldoria.plugin-yml.paper", version.ref = "pluginYmlPaper" }
