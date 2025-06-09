@@ -4,6 +4,7 @@ import com.darkender.plugins.survivalinvisiframes.creativeitemfilter.CreativeIte
 import com.darkender.plugins.survivalinvisiframes.customitems.CustomItemsHandler;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.ItemLore;
+import io.papermc.paper.datacomponent.item.PotionContents;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import io.papermc.paper.event.server.ServerResourcesReloadedEvent;
 import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
@@ -29,9 +30,10 @@ import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
-import org.bukkit.inventory.*;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.CraftingRecipe;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -140,14 +142,12 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 		getConfig().addDefault("glow-invisible-frame.lore", Collections.emptyList());
 
 		ItemStack defaultRecipeItem = new ItemStack(Material.LINGERING_POTION);
-		PotionMeta meta = (PotionMeta) defaultRecipeItem.getItemMeta();
-		meta.setBasePotionType(PotionType.INVISIBILITY);
-		defaultRecipeItem.setItemMeta(meta);
+		defaultRecipeItem.setData(DataComponentTypes.POTION_CONTENTS,
+								  PotionContents.potionContents().potion(PotionType.INVISIBILITY));
 
 		ItemStack defaultRecipeItem2 = new ItemStack(Material.LINGERING_POTION);
-		PotionMeta meta2 = (PotionMeta) defaultRecipeItem.getItemMeta();
-		meta2.setBasePotionType(PotionType.LONG_INVISIBILITY);
-		defaultRecipeItem2.setItemMeta(meta2);
+		defaultRecipeItem2.setData(DataComponentTypes.POTION_CONTENTS,
+								   PotionContents.potionContents().potion(PotionType.LONG_INVISIBILITY));
 
 		getConfig().addDefault("recipes", List.of(defaultRecipeItem, defaultRecipeItem2));
 		saveConfig();
@@ -254,11 +254,9 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 
 	public ItemStack generateInvisibleItemFrame(boolean glowing) {
 		ItemStack item = new ItemStack(glowing ? Material.GLOW_ITEM_FRAME : Material.ITEM_FRAME, 1);
-		ItemMeta meta = item.getItemMeta();
-		meta.getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
-		item.setItemMeta(meta);
+		item.editPersistentDataContainer(
+				pdc -> pdc.set(invisibleKey, PersistentDataType.BYTE, (byte) 1));
 
-		item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
 		item.setData(DataComponentTypes.ITEM_NAME, glowing ? glowInvisibleFrameName : invisibleFrameName);
 
 		if (glowing && glowInvisibleFrameModel != null) {
