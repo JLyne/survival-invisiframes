@@ -5,6 +5,7 @@ import com.darkender.plugins.survivalinvisiframes.customitems.CustomItemsHandler
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.ItemLore;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
+import io.papermc.paper.event.server.ServerResourcesReloadedEvent;
 import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.text.Component;
@@ -119,6 +120,11 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 				}
 			}
 		}
+	}
+
+	@EventHandler
+	public void onServerResourcesReloaded(ServerResourcesReloadedEvent event) {
+		reload();
 	}
 
 	private void initConfig() {
