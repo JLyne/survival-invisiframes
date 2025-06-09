@@ -62,8 +62,10 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 	private boolean firstLoad = true;
 
     private Component invisibleFrameName;
+    private NamespacedKey invisibleFrameModel;
     private List<Component> invisibleFrameLore;
     private Component glowInvisibleFrameName;
+    private NamespacedKey glowInvisibleFrameModel;
     private List<Component> glowInvisibleFrameLore;
 
 	private CustomItemsHandler customItemsHandler;
@@ -124,9 +126,11 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 		getConfig().options().parseComments(true);
 
 		getConfig().addDefault("empty-item-frames-glow", true);
-		getConfig().addDefault("invisible-frame.name", "Invisible Item Frame");
+		getConfig().addDefault("invisible-frame.item-name", "Invisible Item Frame");
+		getConfig().addDefault("invisible-frame.item-model", "minecraft:item_frame");
 		getConfig().addDefault("invisible-frame.lore", Collections.emptyList());
-		getConfig().addDefault("glow-invisible-frame.name", "Glow Invisible Item Frame");
+		getConfig().addDefault("glow-invisible-frame.item-name", "Glow Invisible Item Frame");
+		getConfig().addDefault("glow-invisible-frame.item-model", "minecraft:glow_item_frame");
 		getConfig().addDefault("glow-invisible-frame.lore", Collections.emptyList());
 
 		ItemStack defaultRecipeItem = new ItemStack(Material.LINGERING_POTION);
@@ -174,10 +178,13 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 			forceRecheck();
 		}
 
-		invisibleFrameName = getConfig().getRichMessage("invisible-frame.name",
+		invisibleFrameName = getConfig().getRichMessage("invisible-frame.item-name",
 														Component.text("Invisible Item Frame"));
-		glowInvisibleFrameName = getConfig().getRichMessage("glow-invisible-frame.name",
+		glowInvisibleFrameName = getConfig().getRichMessage("glow-invisible-frame.item-name",
 														Component.text("Glow Invisible Item Frame"));
+		invisibleFrameModel = NamespacedKey.fromString(getConfig().getString("invisible-frame.item-model", ""));
+		glowInvisibleFrameModel = NamespacedKey.fromString(
+				getConfig().getString("glow-invisible-frame.item-model", ""));
 		invisibleFrameLore = getConfig().getStringList("invisible-frame.lore")
 				.stream().map(miniMessage::deserialize).toList();
 		glowInvisibleFrameLore = getConfig().getStringList("glow-invisible-frame.lore")
@@ -220,7 +227,6 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 			}
 		}
 	}
-
 	private boolean isFrameEntity(Entity entity) {
 		return entity instanceof ItemFrame;
 	}
@@ -248,6 +254,13 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 
 		item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
 		item.setData(DataComponentTypes.ITEM_NAME, glowing ? glowInvisibleFrameName : invisibleFrameName);
+
+		if (glowing && glowInvisibleFrameModel != null) {
+			item.setData(DataComponentTypes.ITEM_MODEL, glowInvisibleFrameModel);
+		} else if (!glowing && invisibleFrameModel != null) {
+			item.setData(DataComponentTypes.ITEM_MODEL, invisibleFrameModel);
+		}
+
 		List<Component> lore = glowing ? glowInvisibleFrameLore : invisibleFrameLore;
 
 		if(!lore.isEmpty()) {
