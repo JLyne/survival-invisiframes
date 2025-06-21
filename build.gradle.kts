@@ -20,7 +20,10 @@ repositories {
     maven {
         url = uri("https://repo.papermc.io/repository/maven-public/")
     }
-    mavenCentral()
+    maven {
+        url = uri("https://repo.not-null.co.uk/snapshots/")
+    }
+
     mavenLocal()
 }
 
