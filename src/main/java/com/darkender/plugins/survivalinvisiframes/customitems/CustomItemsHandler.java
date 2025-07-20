@@ -4,7 +4,7 @@ import com.darkender.plugins.survivalinvisiframes.SurvivalInvisiframes;
 import org.bukkit.Bukkit;
 import uk.co.notnull.CustomItems.api.CustomItems;
 
-public final class CustomItemsHandler {;
+public final class CustomItemsHandler {
 	private final SurvivalInvisiFramesItemProvider provider;
 	private final CustomItems customItems = (CustomItems) Bukkit.getPluginManager().getPlugin("CustomItems");
 

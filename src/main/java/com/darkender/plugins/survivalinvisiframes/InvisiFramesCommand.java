@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 
 import static io.papermc.paper.command.brigadier.Commands.literal;
 
-@SuppressWarnings("UnstableApiUsage")
 public class InvisiFramesCommand
 {
     private final SurvivalInvisiframes plugin;
