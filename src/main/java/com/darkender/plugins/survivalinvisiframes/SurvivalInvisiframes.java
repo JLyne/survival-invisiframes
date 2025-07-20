@@ -141,11 +141,11 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 		getConfig().addDefault("glow-invisible-frame.item-model", "minecraft:glow_item_frame");
 		getConfig().addDefault("glow-invisible-frame.lore", Collections.emptyList());
 
-		ItemStack defaultRecipeItem = new ItemStack(Material.LINGERING_POTION);
+		ItemStack defaultRecipeItem = ItemStack.of(Material.LINGERING_POTION);
 		defaultRecipeItem.setData(DataComponentTypes.POTION_CONTENTS,
 								  PotionContents.potionContents().potion(PotionType.INVISIBILITY));
 
-		ItemStack defaultRecipeItem2 = new ItemStack(Material.LINGERING_POTION);
+		ItemStack defaultRecipeItem2 = ItemStack.of(Material.LINGERING_POTION);
 		defaultRecipeItem2.setData(DataComponentTypes.POTION_CONTENTS,
 								   PotionContents.potionContents().potion(PotionType.LONG_INVISIBILITY));
 
@@ -253,7 +253,7 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 	}
 
 	public ItemStack generateInvisibleItemFrame(boolean glowing) {
-		ItemStack item = new ItemStack(glowing ? Material.GLOW_ITEM_FRAME : Material.ITEM_FRAME, 1);
+		ItemStack item = ItemStack.of(glowing ? Material.GLOW_ITEM_FRAME : Material.ITEM_FRAME);
 		item.editPersistentDataContainer(
 				pdc -> pdc.set(invisibleKey, PersistentDataType.BYTE, (byte) 1));
 
