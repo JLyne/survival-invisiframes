@@ -6,6 +6,9 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
+
 import uk.co.notnull.CustomItems.api.items.CustomItem;
 import uk.co.notnull.CustomItems.api.items.provider.CustomItemProvider;
 
@@ -38,7 +41,12 @@ public final class SurvivalInvisiFramesItemProvider implements CustomItemProvide
 			.build();
 	}
 
-	public List<CustomItem> provideItems() {
+	@Override
+	public @NotNull Plugin getPlugin() {
+		return plugin;
+	}
+
+	public @NotNull List<CustomItem> provideItems() {
 		return List.of(invisibleItem, glowInvisibleItem);
 	}
 
