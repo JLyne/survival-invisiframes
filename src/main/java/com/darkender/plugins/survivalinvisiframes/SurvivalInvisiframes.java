@@ -12,7 +12,6 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -32,6 +31,7 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.inventory.CraftingRecipe;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.persistence.PersistentDataType;
@@ -144,11 +144,11 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 		getConfig().addDefault("glow-invisible-frame.item-model", "minecraft:glow_item_frame");
 		getConfig().addDefault("glow-invisible-frame.lore", Collections.emptyList());
 
-		ItemStack defaultRecipeItem = ItemStack.of(Material.LINGERING_POTION);
+		ItemStack defaultRecipeItem = ItemType.LINGERING_POTION.createItemStack();
 		defaultRecipeItem.setData(DataComponentTypes.POTION_CONTENTS,
 								  PotionContents.potionContents().potion(PotionType.INVISIBILITY));
 
-		ItemStack defaultRecipeItem2 = ItemStack.of(Material.LINGERING_POTION);
+		ItemStack defaultRecipeItem2 = ItemType.LINGERING_POTION.createItemStack();
 		defaultRecipeItem2.setData(DataComponentTypes.POTION_CONTENTS,
 								   PotionContents.potionContents().potion(PotionType.LONG_INVISIBILITY));
 
@@ -209,12 +209,12 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 
 		frameRecipe = new ShapedRecipe(recipeKey, invisibleFrame);
 		frameRecipe.shape("FFF", "FPF", "FFF");
-		frameRecipe.setIngredient('F', Material.ITEM_FRAME);
+		frameRecipe.setIngredient('F', RecipeChoice.itemType(ItemType.ITEM_FRAME)); //FIXME
 		frameRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotions.toArray(new ItemStack[0])));
 
 		glowRecipe = new ShapedRecipe(glowRecipeKey, glowInvisibleFrame);
 		glowRecipe.shape("FFF", "FPF", "FFF");
-		glowRecipe.setIngredient('F', Material.GLOW_ITEM_FRAME);
+		glowRecipe.setIngredient('F', RecipeChoice.itemType(ItemType.GLOW_ITEM_FRAME)); //FIXME
 		glowRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotions.toArray(new ItemStack[0])));
 
 		Bukkit.addRecipe(frameRecipe);
@@ -241,12 +241,14 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 	}
 
 	public boolean isFrameItem(ItemStack item) {
-		return item != null && (item.getType() == Material.ITEM_FRAME || item.getType() == Material.GLOW_ITEM_FRAME);
+		return item != null && (item.getType().asItemType() == ItemType.ITEM_FRAME
+				|| item.getType().asItemType() == ItemType.GLOW_ITEM_FRAME);
 	}
 
 	public boolean isInvisibleItemFrame(ItemStack item) {
 		return item != null
-				&& (item.getType() == Material.ITEM_FRAME || item.getType() == Material.GLOW_ITEM_FRAME)
+				&& (item.getType().asItemType() == ItemType.ITEM_FRAME
+					|| item.getType().asItemType() == ItemType.GLOW_ITEM_FRAME)
 				&& item.getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE);
 	}
 
@@ -256,7 +258,7 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 	}
 
 	public ItemStack generateInvisibleItemFrame(boolean glowing) {
-		ItemStack item = ItemStack.of(glowing ? Material.GLOW_ITEM_FRAME : Material.ITEM_FRAME);
+		ItemStack item = glowing ? ItemType.GLOW_ITEM_FRAME.createItemStack() : ItemType.ITEM_FRAME.createItemStack();
 		item.editPersistentDataContainer(
 				pdc -> pdc.set(invisibleKey, PersistentDataType.BYTE, (byte) 1));
 
@@ -360,7 +362,8 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 		while (iter.hasNext()) {
 			DroppedFrameLocation droppedFrameLocation = iter.next();
 			if (droppedFrameLocation.isFrame(item)) {
-				ItemStack frame = generateInvisibleItemFrame(item.getItemStack().getType() == Material.GLOW_ITEM_FRAME);
+				ItemStack frame = generateInvisibleItemFrame(
+						item.getItemStack().getType().asItemType() == ItemType.GLOW_ITEM_FRAME);
 				event.getEntity().setItemStack(frame);
 
 				droppedFrameLocation.getRemoval().cancel();

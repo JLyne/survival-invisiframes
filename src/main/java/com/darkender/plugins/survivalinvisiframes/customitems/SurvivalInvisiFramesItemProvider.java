@@ -2,9 +2,9 @@ package com.darkender.plugins.survivalinvisiframes.customitems;
 
 import com.darkender.plugins.survivalinvisiframes.SurvivalInvisiframes;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +50,7 @@ public final class SurvivalInvisiFramesItemProvider implements CustomItemProvide
 		return List.of(invisibleItem, glowInvisibleItem);
 	}
 
+	@SuppressWarnings("UnstableApiUsage")
 	public CustomItem identifyItem(ItemStack itemStack) {
 		if(!plugin.isFrameItem(itemStack)) {
 			return null;
@@ -59,6 +60,6 @@ public final class SurvivalInvisiFramesItemProvider implements CustomItemProvide
 			return null;
 		}
 
-		return itemStack.getType() == Material.GLOW_ITEM_FRAME ? glowInvisibleItem : invisibleItem;
+		return itemStack.getType().asItemType() == ItemType.GLOW_ITEM_FRAME ? glowInvisibleItem : invisibleItem;
 	}
 }
