@@ -41,11 +41,14 @@ import org.bukkit.potion.PotionType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
@@ -207,14 +210,36 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 
 		List<ItemStack> invisibilityPotions = (List<ItemStack>) getConfig().getList("recipes", Collections.emptyList());
 
+		RecipeChoice frameChoice;
+		RecipeChoice glowChoice;
+
+		// Use Purpur's setPredicate when possible to exclude custom items from this and other plugins
+		// in crafting recipes
+		try {
+			frameChoice = new RecipeChoice.ExactChoice(ItemType.ITEM_FRAME.createItemStack());
+			glowChoice = new RecipeChoice.ExactChoice(ItemType.GLOW_ITEM_FRAME.createItemStack());
+
+			Method setPredicate = frameChoice.getClass().getMethod("setPredicate", Predicate.class);
+			Predicate<ItemStack> framePredicate = (ItemStack item) ->
+					ItemType.ITEM_FRAME.equals(item.getType().asItemType()) && item.getPersistentDataContainer().isEmpty();
+			Predicate<ItemStack> glowPedicate = (ItemStack item) ->
+					ItemType.GLOW_ITEM_FRAME.equals(item.getType().asItemType()) && item.getPersistentDataContainer().isEmpty();
+
+			setPredicate.invoke(frameChoice, framePredicate);
+			setPredicate.invoke(glowChoice, glowPedicate);
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+			frameChoice = RecipeChoice.itemType(ItemType.ITEM_FRAME);
+			glowChoice = RecipeChoice.itemType(ItemType.GLOW_ITEM_FRAME);
+		}
+
 		frameRecipe = new ShapedRecipe(recipeKey, invisibleFrame);
 		frameRecipe.shape("FFF", "FPF", "FFF");
-		frameRecipe.setIngredient('F', RecipeChoice.itemType(ItemType.ITEM_FRAME)); //FIXME
+		frameRecipe.setIngredient('F', frameChoice);
 		frameRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotions.toArray(new ItemStack[0])));
 
 		glowRecipe = new ShapedRecipe(glowRecipeKey, glowInvisibleFrame);
 		glowRecipe.shape("FFF", "FPF", "FFF");
-		glowRecipe.setIngredient('F', RecipeChoice.itemType(ItemType.GLOW_ITEM_FRAME)); //FIXME
+		glowRecipe.setIngredient('F', glowChoice);
 		glowRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotions.toArray(new ItemStack[0])));
 
 		Bukkit.addRecipe(frameRecipe);
