@@ -24,7 +24,7 @@ public final class SurvivalInvisiFramesItemProvider implements CustomItemProvide
 
 		invisibleItem = CustomItem.builder().id(new NamespacedKey(plugin, "invisible_item_frame"))
 			.displayName(Component.text("Invisible Item Frame"))
-			.generator((player, quantity) -> {
+			.generator((_, quantity) -> {
 				ItemStack frame = plugin.generateInvisibleItemFrame(false);
 				frame.setAmount(Math.max(quantity, frame.getMaxStackSize()));
 				return frame;
@@ -33,7 +33,7 @@ public final class SurvivalInvisiFramesItemProvider implements CustomItemProvide
 
 		glowInvisibleItem = CustomItem.builder().id(new NamespacedKey(plugin, "glow_invisible_item_frame"))
 			.displayName(Component.text("Glow Invisible Item Frame"))
-			.generator((player, quantity) -> {
+			.generator((_, quantity) -> {
 				ItemStack frame = plugin.generateInvisibleItemFrame(true);
 				frame.setAmount(Math.max(quantity, frame.getMaxStackSize()));
 				return frame;

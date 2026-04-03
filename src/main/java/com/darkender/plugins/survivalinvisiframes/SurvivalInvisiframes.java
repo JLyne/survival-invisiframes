@@ -222,10 +222,10 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 		for (World world : Bukkit.getWorlds()) {
 			for (ItemFrame frame : world.getEntitiesByClass(ItemFrame.class)) {
 				if (isInvisibleItemFrame(frame)) {
-					if (frame.getItem().getType() == Material.AIR && framesGlow) {
+					if (frame.isEmpty() && framesGlow) {
 						frame.setGlowing(true);
 						frame.setVisible(true);
-					} else if (frame.getItem().getType() != Material.AIR) {
+					} else if (!frame.isEmpty()) {
 						frame.setGlowing(false);
 						frame.setVisible(false);
 					}
@@ -287,7 +287,7 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 				event.getInventory().setResult(null);
 			} else if (key.equals(vanillaGlowRecipe)) { // Vanilla glow recipe with invisible frame
 				for (ItemStack i : event.getInventory().getMatrix()) {
-					if (i == null || i.getType() == Material.AIR) {
+					if (i == null || i.isEmpty()) {
 						continue;
 					}
 
