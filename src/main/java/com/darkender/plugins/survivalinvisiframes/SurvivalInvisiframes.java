@@ -90,6 +90,9 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 	public void onDisable() {
 		// Remove added recipes on plugin disable
 		removeRecipes();
+		if (customItemsHandler != null) {
+			customItemsHandler.unregisterProvider();
+		}
 	}
 
 	@EventHandler
