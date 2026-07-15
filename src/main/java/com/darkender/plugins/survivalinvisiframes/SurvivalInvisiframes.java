@@ -34,6 +34,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -56,10 +57,11 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 
 	private ShapedRecipe frameRecipe;
 	private ShapedRecipe glowRecipe;
+	private ShapelessRecipe alternateGlowRecipe;
 
 	private final NamespacedKey recipeKey = new NamespacedKey(this, "frame");
 	private final NamespacedKey glowRecipeKey = new NamespacedKey(this, "glow_frame");
-	private final NamespacedKey vanillaGlowRecipe = NamespacedKey.minecraft("glow_item_frame");
+	private final NamespacedKey alternateGlowRecipeKey = new NamespacedKey(this, "glow_frame_alternate");
 
 	public final NamespacedKey invisibleKey = new NamespacedKey(this, "invisible");
 	private final Set<DroppedFrameLocation> droppedFrames = new HashSet<>();
@@ -175,6 +177,10 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 		if (glowRecipe != null) {
 			Bukkit.removeRecipe(glowRecipe.getKey());
 		}
+		
+		if (alternateGlowRecipe != null) {
+			Bukkit.removeRecipe(alternateGlowRecipe.getKey());
+		}
 	}
 
 	public void reload() {
@@ -212,21 +218,32 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 
 		RecipeChoice frameChoice;
 		RecipeChoice glowChoice;
+		RecipeChoice invisibleFrameChoice;
 
 		// Use Purpur's setPredicate when possible to exclude custom items from this and other plugins
 		// in crafting recipes
 		try {
 			frameChoice = new RecipeChoice.ExactChoice(ItemType.ITEM_FRAME.createItemStack());
 			glowChoice = new RecipeChoice.ExactChoice(ItemType.GLOW_ITEM_FRAME.createItemStack());
+			invisibleFrameChoice = new RecipeChoice.ExactChoice(ItemType.ITEM_FRAME.createItemStack());
 
 			Method setPredicate = frameChoice.getClass().getMethod("setPredicate", Predicate.class);
 			Predicate<ItemStack> framePredicate = (ItemStack item) ->
 					ItemType.ITEM_FRAME.equals(item.getType().asItemType()) && item.getPersistentDataContainer().isEmpty();
-			Predicate<ItemStack> glowPedicate = (ItemStack item) ->
+			Predicate<ItemStack> glowPredicate = (ItemStack item) ->
 					ItemType.GLOW_ITEM_FRAME.equals(item.getType().asItemType()) && item.getPersistentDataContainer().isEmpty();
+			Predicate<ItemStack> invisibleItemFramePredicate = (ItemStack item) -> 
+					item.getType().asItemType() == ItemType.ITEM_FRAME && isInvisibleItemFrame(item);
 
 			setPredicate.invoke(frameChoice, framePredicate);
-			setPredicate.invoke(glowChoice, glowPedicate);
+			setPredicate.invoke(glowChoice, glowPredicate);
+			setPredicate.invoke(invisibleFrameChoice, invisibleItemFramePredicate);
+			
+			alternateGlowRecipe = new ShapelessRecipe(alternateGlowRecipeKey, generateInvisibleItemFrame(true));
+			alternateGlowRecipe.addIngredient(invisibleFrameChoice);
+			alternateGlowRecipe.addIngredient(RecipeChoice.itemType(ItemType.GLOW_INK_SAC));
+			
+			Bukkit.addRecipe(alternateGlowRecipe);
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
 			frameChoice = RecipeChoice.itemType(ItemType.ITEM_FRAME);
 			glowChoice = RecipeChoice.itemType(ItemType.GLOW_ITEM_FRAME);
@@ -312,20 +329,9 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 			NamespacedKey key = recipe.getKey();
 
 			// Permission check for new crafting recipes
-			if ((key.equals(recipeKey) || key.equals(glowRecipeKey)) &&
+			if ((key.equals(recipeKey) || key.equals(glowRecipeKey) || key.equals(alternateGlowRecipeKey)) &&
 					!crafter.hasPermission("survivalinvisiframes.craft")) {
 				event.getInventory().setResult(null);
-			} else if (key.equals(vanillaGlowRecipe)) { // Vanilla glow recipe with invisible frame
-				for (ItemStack i : event.getInventory().getMatrix()) {
-					if (i == null || i.isEmpty()) {
-						continue;
-					}
-
-					if (isInvisibleItemFrame(i)) {
-						boolean hasPermission = crafter.hasPermission("survivalinvisiframes.craft");
-						event.getInventory().setResult(hasPermission ? generateInvisibleItemFrame(true) : null);
-					}
-				}
 			}
 		}
 	}
