@@ -42,8 +42,6 @@ import org.bukkit.potion.PotionType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -219,45 +217,33 @@ public final class SurvivalInvisiframes extends JavaPlugin implements Listener {
 		RecipeChoice frameChoice;
 		RecipeChoice glowChoice;
 		RecipeChoice invisibleFrameChoice;
-
-		// Use Purpur's setPredicate when possible to exclude custom items from this and other plugins
-		// in crafting recipes
-		try {
-			frameChoice = new RecipeChoice.ExactChoice(ItemType.ITEM_FRAME.createItemStack());
-			glowChoice = new RecipeChoice.ExactChoice(ItemType.GLOW_ITEM_FRAME.createItemStack());
-			invisibleFrameChoice = new RecipeChoice.ExactChoice(ItemType.ITEM_FRAME.createItemStack());
-
-			Method setPredicate = frameChoice.getClass().getMethod("setPredicate", Predicate.class);
-			Predicate<ItemStack> framePredicate = (ItemStack item) ->
-					ItemType.ITEM_FRAME.equals(item.getType().asItemType()) && item.getPersistentDataContainer().isEmpty();
-			Predicate<ItemStack> glowPredicate = (ItemStack item) ->
-					ItemType.GLOW_ITEM_FRAME.equals(item.getType().asItemType()) && item.getPersistentDataContainer().isEmpty();
-			Predicate<ItemStack> invisibleItemFramePredicate = (ItemStack item) -> 
-					item.getType().asItemType() == ItemType.ITEM_FRAME && isInvisibleItemFrame(item);
-
-			setPredicate.invoke(frameChoice, framePredicate);
-			setPredicate.invoke(glowChoice, glowPredicate);
-			setPredicate.invoke(invisibleFrameChoice, invisibleItemFramePredicate);
-			
-			alternateGlowRecipe = new ShapelessRecipe(alternateGlowRecipeKey, generateInvisibleItemFrame(true));
-			alternateGlowRecipe.addIngredient(invisibleFrameChoice);
-			alternateGlowRecipe.addIngredient(RecipeChoice.itemType(ItemType.GLOW_INK_SAC));
-			
-			Bukkit.addRecipe(alternateGlowRecipe);
-		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-			frameChoice = RecipeChoice.itemType(ItemType.ITEM_FRAME);
-			glowChoice = RecipeChoice.itemType(ItemType.GLOW_ITEM_FRAME);
-		}
+		
+		Predicate<ItemStack> framePredicate = (ItemStack item) ->
+				ItemType.ITEM_FRAME.equals(item.getType().asItemType()) && item.getPersistentDataContainer().isEmpty();
+		Predicate<ItemStack> glowPredicate = (ItemStack item) ->
+				ItemType.GLOW_ITEM_FRAME.equals(item.getType().asItemType()) && item.getPersistentDataContainer().isEmpty();
+		Predicate<ItemStack> invisibleItemFramePredicate = (ItemStack item) -> 
+				item.getType().asItemType() == ItemType.ITEM_FRAME && isInvisibleItemFrame(item);
+		
+		frameChoice = RecipeChoice.predicateChoice(framePredicate, ItemType.ITEM_FRAME.createItemStack());
+		glowChoice = RecipeChoice.predicateChoice(glowPredicate, ItemType.GLOW_ITEM_FRAME.createItemStack());
+		invisibleFrameChoice = RecipeChoice.predicateChoice(invisibleItemFramePredicate, ItemType.ITEM_FRAME.createItemStack());
+		
+		alternateGlowRecipe = new ShapelessRecipe(alternateGlowRecipeKey, generateInvisibleItemFrame(true));
+		alternateGlowRecipe.addIngredient(invisibleFrameChoice);
+		alternateGlowRecipe.addIngredient(RecipeChoice.itemType(ItemType.GLOW_INK_SAC));
+		
+		Bukkit.addRecipe(alternateGlowRecipe);
 
 		frameRecipe = new ShapedRecipe(recipeKey, invisibleFrame);
 		frameRecipe.shape("FFF", "FPF", "FFF");
 		frameRecipe.setIngredient('F', frameChoice);
-		frameRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotions.toArray(new ItemStack[0])));
+		frameRecipe.setIngredient('P', RecipeChoice.exactChoice(invisibilityPotions));
 
 		glowRecipe = new ShapedRecipe(glowRecipeKey, glowInvisibleFrame);
 		glowRecipe.shape("FFF", "FPF", "FFF");
 		glowRecipe.setIngredient('F', glowChoice);
-		glowRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotions.toArray(new ItemStack[0])));
+		glowRecipe.setIngredient('P', RecipeChoice.exactChoice(invisibilityPotions));
 
 		Bukkit.addRecipe(frameRecipe);
 		Bukkit.addRecipe(glowRecipe);
